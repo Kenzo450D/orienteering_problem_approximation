@@ -51,29 +51,29 @@ class RecursiveAlgorithm:
     def recursive_greedy(self, s: int, t: int, b: int, r_set: set, n_iter:int=0, prefix:str=""):
         ''' Calculates orienteering path from s to t within budget b.
         '''
-        print (f"{prefix}s={s}\tt={t}\tb={b}\tr_set={r_set}\titer={n_iter}")
+        # print (f"{prefix}s={s}\tt={t}\tb={b}\tr_set={r_set}\titer={n_iter}")
         c = self.costs 
         if c[s,t] > b: # line 3
-            print(f"{prefix}cost: {c[s,t]} > budget: {b} ... Infeasible")
+            # print(f"{prefix}cost: {c[s,t]} > budget: {b} ... Infeasible")
             return None # no path from s to t within budget b
         path = [s, t] # line 5
         if n_iter == 0:
-            print (f'{prefix}Iter == 0 ... return')
+            # print (f'{prefix}Iter == 0 ... return')
             return path
         
         # -- print path
-        print(f"{prefix}Initial Path: {path}")
+        # print(f"{prefix}Initial Path: {path}")
 
         # -- get m
         m, prize, cost = self.get_ptp_prize_cost_difference(path)
-        print(f"{prefix}Prize: {prize}\tCost: {cost}\tm: {m}")
+        # print(f"{prefix}Prize: {prize}\tCost: {cost}\tm: {m}")
 
         # -- iterate over all vertices
         v_set = set([i for i in range(0, self.num_nodes)])
 
         # -- remove the numbers in r_set
         v_set -= r_set
-        print (f"{prefix}v_set: {v_set}")
+        # print (f"{prefix}v_set: {v_set}")
 
         # -- iterate over v_set
         for v_m in v_set: # line 8
@@ -89,13 +89,13 @@ class RecursiveAlgorithm:
                 path_2 = self.recursive_greedy(v_m, t, b_2, r_2, n_iter-1, prefix+"\t") # line 11
                 if path_2 is None:
                     continue
-                print (f"{prefix}path_1: {path_1}\tpath_2: {path_2}")
+                # print (f"{prefix}path_1: {path_1}\tpath_2: {path_2}")
                 path_new = path_1 + path_2[1:]
                 m_new, prize_new, cost_new = self.get_ptp_prize_cost_difference(path_new)
-                print (f"{prefix}New Path: {path_new}")
-                print (f"{prefix}Prize New: {prize_new}\tCost New: {cost_new}\tm New: {m_new}")
-                print (f"{prefix}Old Path: {path}")
-                print (f"{prefix}Old prize: {prize}\tOld Cost: {cost}\tOld m: {m}")
+                # print (f"{prefix}New Path: {path_new}")
+                # print (f"{prefix}Prize New: {prize_new}\tCost New: {cost_new}\tm New: {m_new}")
+                # print (f"{prefix}Old Path: {path}")
+                # print (f"{prefix}Old prize: {prize}\tOld Cost: {cost}\tOld m: {m}")
                 if m_new > m: # line 12
                     path = path_new
                     m = m_new
@@ -107,12 +107,14 @@ def main(n=7, budget=10, n_iterations=4):
     graph_data = get_graph_data(n)
     graph_data['prizes'][1] = 0
     graph_data['prizes'][2] = 0
+    graph_data['prizes'] = [0, 0, 0, 5, 5, 5, 5, 5, 5, 0]
     print ("graph_data: ", graph_data)
     print ("-"*100)
     rao = RecursiveAlgorithm(graph_data)
 
     r_set = set([graph_data['home'], graph_data['goal']])
-
+    print ("Budget : ", budget)
+    print ("Number of iterations: ", n_iterations)
     path = rao.recursive_greedy(graph_data['home'], graph_data['goal'], b=budget, r_set=r_set, n_iter=n_iterations)
     print ("Calculated path: ", path)
     print ("Path prize: ", rao.get_path_prize(path))
@@ -122,7 +124,7 @@ if __name__=='__main__':
     budget = 30
     n_vertices = 10 #7,10
     n_iter = 4
-    main(n_vertices, budget, )
+    main(n_vertices, budget, n_iter)
 
 
 
