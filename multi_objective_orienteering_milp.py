@@ -7,6 +7,8 @@ class OrienteeringMILP:
     def __init__(self, graph_data):
         self.costs = graph_data['costs']
         self.prizes = graph_data['prizes']
+        # make all prizes to 5 where prize is greater than 50
+        # self.prizes = np.where(self.prizes > 50, 5, self.prizes)
         self.depot_idx = graph_data['depot_idx']
         self.num_nodes = self.costs.shape[0]
         self.num_customers = self.num_nodes - 1
@@ -37,8 +39,14 @@ class OrienteeringMILP:
         # u_i \in R
         u = model.addVars(self.num_nodes, vtype=gp.GRB.CONTINUOUS, name="u")
 
-        # Objective Function
-        model.setObjective(gp.quicksum(self.prizes[i] * y[i] for i in range(self.num_nodes) if i!= s or i!=t), gp.GRB.MAXIMIZE)
+        lin_expr_prizes_collected = gp.quicksum(self.prizes[i] * y[i] for i in range(self.num_nodes) if i!= s or i!=t)
+        lin_expr_cost = gp.quicksum(self.costs[i, j] * x[i, j] for i in range(self.num_nodes) for j in range(self.num_nodes))
+
+        # Objectives
+        model.setObjectiveN(
+            lin_expr_prizes_collected, index=0, weight=-1, name="MaximizePrizes")
+        model.setObjectiveN(
+            lin_expr_cost,index=1, weight=1, name="MinimizeTimeBudget")
 
         # Constraints
         # Constraint 1: Budget constraint
@@ -111,8 +119,6 @@ class OrienteeringMILP:
 
         # Objective function
         model.setObjective(gp.quicksum(self.prizes[i] * y[i] for i in range(self.num_nodes)), gp.GRB.MAXIMIZE)
-        model.setParam('MipGap', 0.0)
-        model.setParam('Seed', 100000)
 
         # Constraints
         # Constraint 1: Budget constraint
@@ -230,11 +236,13 @@ class OrienteeringMILP:
         return cost
 
 def main(n):
-    graph_data = get_graph_data(7, "geometric")
+    graph_data = get_graph_data(7)
     print ("graph_data: ", graph_data)
     print ("-"*100)
     o_milp = OrienteeringMILP(graph_data)
     print ("Number of nodes: ", o_milp.num_nodes)
+    print (f"Home: ", graph_data['home'])
+    print (f"Goal: ", graph_data['goal'])
 
     r_set = set([graph_data['home'], graph_data['goal']])
     path = o_milp.solve_milp_path(graph_data['home'], graph_data['goal'], b=100)

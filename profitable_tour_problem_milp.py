@@ -37,9 +37,13 @@ class OrienteeringMILP:
         # u_i \in R
         u = model.addVars(self.num_nodes, vtype=gp.GRB.CONTINUOUS, name="u")
 
-        # Objective Function
-        model.setObjective(gp.quicksum(self.prizes[i] * y[i] for i in range(self.num_nodes) if i!= s or i!=t), gp.GRB.MAXIMIZE)
+        lin_expr_prizes_collected = gp.quicksum(self.prizes[i] * y[i] for i in range(self.num_nodes) if i!= s or i!=t)
+        lin_expr_cost = gp.quicksum(self.costs[i, j] * x[i, j] for i in range(self.num_nodes) for j in range(self.num_nodes))
 
+        # Objectives
+        model.setObjective(lin_expr_prizes_collected - lin_expr_cost, gp.GRB.MAXIMIZE)
+        model.setParam('MipGap', 0.0)
+        model.setParam('Seed', np.random.randint(0, 2**31 -1))
         # Constraints
         # Constraint 1: Budget constraint
         model.addConstr(gp.quicksum(self.costs[i, j] * x[i, j] for i in range(self.num_nodes) for j in range(self.num_nodes)) <= b, name="time_budget")
@@ -111,8 +115,6 @@ class OrienteeringMILP:
 
         # Objective function
         model.setObjective(gp.quicksum(self.prizes[i] * y[i] for i in range(self.num_nodes)), gp.GRB.MAXIMIZE)
-        model.setParam('MipGap', 0.0)
-        model.setParam('Seed', 100000)
 
         # Constraints
         # Constraint 1: Budget constraint
@@ -231,10 +233,19 @@ class OrienteeringMILP:
 
 def main(n):
     graph_data = get_graph_data(7, "geometric")
-    print ("graph_data: ", graph_data)
+    print ("graph_data: \n")
+    print ("Costs:")
+    print (graph_data['costs'])
+    print ("-"*100)
+    print ("Prizes:")
+    print (graph_data['prizes'])
+    print ("-"*100)
+    print (f"Home: ", graph_data['home'])
+    print (f"Goal: ", graph_data['goal'])
     print ("-"*100)
     o_milp = OrienteeringMILP(graph_data)
     print ("Number of nodes: ", o_milp.num_nodes)
+    input("Continue to get solution..")
 
     r_set = set([graph_data['home'], graph_data['goal']])
     path = o_milp.solve_milp_path(graph_data['home'], graph_data['goal'], b=100)
