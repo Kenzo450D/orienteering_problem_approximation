@@ -1,0 +1,5 @@
+# Multi objective profitable tour problem
+
+The multi objective formulation of the profitable tour problem uses two objective functions from Gurobi set up as `setObjectiveN` instead of the usual `setObjective` function. However the formulation treats the objectives as a single objective function. In terms of multi-objective optimization (MOO) problems, they use the "Weighted Sum" method for multiple objectives. For each objective you have to put in a priority and a weight. By default the priority for each objective function is 1.
+
+Gurobi does not allow you to use ModelSense to determine if the objective is a maximization problem or minimization problem. Instead, Gurobi considers the default of minimization. To consider a maximization objective, please consider a weight of -1 for that objective function.
